@@ -1,80 +1,39 @@
 # C4-Pro
 
+## 📦 Описание мода
 
-## 📦 模组介绍
-
-### 1. 🎯 模组定位  
-本模组由 **qisumei** 的 C4 模组移植、改造并深度优化而来。在保留原版玩法精髓的基础上，针对其机制与体验上的不足进行了大量重构与增强，旨在提供更稳定、更灵活、更适合多人游戏环境的 C4 机制。
-
----
-
-### 2. 💣 玩法说明  
-- **安装 C4**：手持 C4，对准允许放置的方块，**持续按住右键 4 秒**即可完成安装。  
-- **拆除 C4**：使用 **剪刀** 对准已安装的 C4，**持续按住右键 4 秒**即可拆除。  
-- **爆炸倒计时**：C4 安装后 **40 秒** 自动爆炸，期间会通过游戏内提示进行预警。
+### 1. 🎯 Концепция
+Этот мод является портом, переработкой и глубокой оптимизацией оригинального мода C4 от **qisumei**. Сохраняя суть оригинального игрового процесса, мы провели масштабный рефакторинг и внесли улучшения, направленные на устранение недостатков механизмов и удобства использования. Цель — создать более стабильную, гибкую и подходящую для многопользовательского режима механику C4.
 
 ---
 
-### 3. ⚙️ 核心改动  
-- **实体化重构**：将 C4 从方块改为实体，解决了原版中因游戏模式限制导致的拆装问题，同时便于服务器进行实体清理与管理。  
-- **合法方块配置**：支持自定义可安装 C4 的方块类型，只有在配置名单内的方块上才允许安装，提升玩法可控性。  
-- **专用拆除工具**：C4 仅能使用剪刀拆除，避免误操作或其他工具干扰。  
-- **记分板状态反馈**：C4 的安装、爆炸、拆除状态会实时同步至记分板，便于地图或服务器进行逻辑联动（详见“记分板联动”部分）。
+### 2. 💣 Инструкция по игре
+- **Установка C4**: Возьмите C4 в руку, нацельтесь на блок, на котором разрешена установка, и **удерживайте правую кнопку мыши в течение 4 секунд**.
+- **Разминирование C4**: Используйте **ножницы**, нацелившись на установленный C4, и **удерживайте правую кнопку мыши в течение 4 секунд**.
+- **Таймер взрыва**: C4 автоматически взрывается через **40 секунд** после установки; в течение этого времени в игре будут отображаться предупреждения.
 
 ---
 
-### 4. 📊 记分板联动  
-C4 的状态将记录在玩家 `#C4` 的记分板项 `c4_condition` 中，状态值含义如下：
+### 3. ⚙️ Основные изменения
+- **Рефакторинг на основе сущностей**: C4 теперь является сущностью (entity), а не блоком. Это решает проблемы с установкой и демонтажем, вызванные ограничениями игрового режима, а также упрощает очистку и управление сущностями на сервере.
+- **Настройка допустимых блоков**: Поддерживается настройка типов блоков, на которые можно устанавливать C4. Установка разрешена только на блоки из списка конфигурации, что повышает контролируемость игрового процесса.
+- **Специальный инструмент для разминирования**: C4 можно обезвредить только ножницами, что предотвращает случайные действия или вмешательство других инструментов.
+- **Синхронизация с таблицей достижений (Scoreboard)**: Статус установки, взрыва и разминирования C4 синхронизируется с таблицей достижений в реальном времени, что удобно для логической интеграции с картами или сервером (подробности см. в разделе «Интеграция с таблицей достижений»).
 
-| 状态值 | 含义 |
+---
+
+### 4. 📊 Интеграция с таблицей достижений (Scoreboard)
+Статус C4 записывается в таблицу достижений игрока `#C4` в критерий `c4_condition`. Значения статусов:
+
+| Значение | Значение статуса |
 |--------|------|
-| 1 | 已安装 C4 |
-| 2 | C4 已爆炸 |
-| 3 | C4 已拆除 |
+| 1 | C4 установлен |
+| 2 | C4 взорвался |
+| 3 | C4 обезврежен |
 
-> 📌 **注意**：每局游戏开始时，需手动将该值重置为 `0`，以确保状态判断准确。
-
----
-
-### 5. 🐛 问题反馈  
-如在使用过程中遇到任何问题，或希望提出建议，欢迎加入开发群进行反馈与交流。
+> 📌 **Примечание**: В начале каждого раунда необходимо вручную сбрасывать это значение на `0` для обеспечения точности определения статуса.
 
 ---
 
-## 📦 Mod Introduction
-
-### 1. 🎯 Positioning  
-This mod is a **fork, enhancement, and optimization** of the original C4 mod created by **qisumei**. While retaining the core mechanics, it addresses many limitations of the original version through extensive refactoring and improvements, aiming to deliver a more stable, flexible, and multiplayer-friendly C4 experience.
-
----
-
-### 2. 💣 Gameplay  
-- **Planting C4**: Hold the C4 in hand, aim at a valid block, and **hold the right button for 4 seconds** to plant it.  
-- **Defusing C4**: Use **shears** on a planted C4 and **hold the right button for 4 seconds** to defuse it.  
-- **Detonation Timer**: The C4 will explode **40 seconds after being planted**, with in-game alerts throughout the countdown.
-
----
-
-### 3. ⚙️ Key Changes  
-- **Entity-Based Design**: The C4 is now an entity instead of a block, ensuring proper planting and defusing mechanics regardless of game mode, and allowing easier server-side cleanup.  
-- **Configurable Valid Blocks**: Only blocks specified in the configuration can have C4 planted on them, offering better control over gameplay scenarios.  
-- **Dedicated Defusal Tool**: C4 can only be defused using shears, preventing accidental interactions or interference from other tools.  
-- **Scoreboard Integration**: The status of C4 is synchronized to the scoreboard, enabling seamless integration with maps or server logic (see “Scoreboard Integration” for details).
-
----
-
-### 4. 📊 Scoreboard Integration  
-C4 status is stored in the player’s `#C4` scoreboard under the objective `c4_condition`. The possible values are:
-
-| Value | Status |
-|-------|--------|
-| 1 | C4 Planted |
-| 2 | C4 Exploded |
-| 3 | C4 Defused |
-
-> 📌 **Note**: At the start of each round, this value should be manually reset to `0` to ensure accurate state tracking.
-
----
-
-### 5. 🐛 Feedback & Support  
-If you encounter any issues or have suggestions, feel free to join our development group for feedback and support.
+### 5. 🐛 Обратная связь
+Если вы столкнулись с какими-либо проблемами в процессе использования или хотите внести предложения, приглашаем вас присоединиться к нашей группе разработчиков для обратной связи и обсуждения.
