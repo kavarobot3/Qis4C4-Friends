@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Specification-Title: qis4c4
+Specification-Vendor: qisumei, nimshade
+Specification-Version: 1
+Implementation-Title: C4-Pro
+Implementation-Version: 1.5.0
+Implementation-Vendor: qisumei, nimshade
+Implementation-Timestamp: 2026-06-18T17:55:23+0300
+

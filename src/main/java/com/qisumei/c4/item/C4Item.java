@@ -19,6 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class C4Item extends Item {
     private static final ThreadLocal<Boolean> isCompleted = ThreadLocal.withInitial(() -> false);
@@ -28,6 +29,15 @@ public class C4Item extends Item {
     @Nonnull @Override public UseAnim getUseAnimation(@Nonnull ItemStack stack) { return UseAnim.BLOCK; }
 
     @Nonnull @Override public InteractionResultHolder<ItemStack> use(@Nonnull Level world, @Nonnull Player player, @Nonnull InteractionHand hand) {
+        // --- ПРОВЕРКА БЛОКА ПРИ НАЧАЛЕ УСТАНОВКИ ---
+        Block standingBlock = world.getBlockState(player.blockPosition().below()).getBlock();
+        String blockId = ForgeRegistries.BLOCKS.getKey(standingBlock).toString();
+        
+        if (!Config.isBlockAllowed(blockId)) {
+            if (!world.isClientSide()) PacketHandler.sendToPlayer((ServerPlayer)player, "\u00a7c C4 можно установить только на: " + Config.allowedBlocks, 3000);
+            return InteractionResultHolder.fail(player.getItemInHand(hand));
+        }
+
         player.startUsingItem(hand);
         isCompleted.set(false);
         world.playSound(null, player.blockPosition(), (SoundEvent)ModSounds.C4_PLANT.get(), SoundSource.BLOCKS, 30000.0f, 1.0f);
@@ -46,9 +56,16 @@ public class C4Item extends Item {
         if (!(user instanceof Player) || world.isClientSide()) return;
         if (rem == 1) {
             isCompleted.set(true);
-            BlockPos pos = user.blockPosition();
-            if (world instanceof ServerLevel) ((ServerLevel)world).addFreshEntity(new C4Entity(world, pos, true));
-            if (!((Player)user).getAbilities().instabuild) stack.shrink(1);
+            // --- ПРОВЕРКА БЛОКА ПРИ ЗАВЕРШЕНИИ (на случай если игрок отошел) ---
+            BlockPos placePos = user.blockPosition();
+            String blockId = ForgeRegistries.BLOCKS.getKey(world.getBlockState(placePos.below()).getBlock()).toString();
+            
+            if (Config.isBlockAllowed(blockId)) {
+                if (world instanceof ServerLevel) ((ServerLevel)world).addFreshEntity(new C4Entity(world, placePos, true));
+                if (!((Player)user).getAbilities().instabuild) stack.shrink(1);
+            } else {
+                PacketHandler.sendToPlayer((ServerPlayer)user, "\u00a7c C4 можно установить только на разрешенные блоки!", 3000);
+            }
         }
     }
     @Override public int getUseDuration(@Nonnull ItemStack stack) { return 70; }

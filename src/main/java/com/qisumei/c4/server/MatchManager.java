@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.server.ServerLifecycleHooks;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,13 +42,15 @@ public class MatchManager {
             PlayerTeam team = player.getScoreboard().getPlayersTeam(player.getScoreboardName());
             if (team == null) continue;
             boolean isAlive = player.isAlive() && player.gameMode.getGameModeForPlayer() != GameType.SPECTATOR;
+            String name = player.getGameProfile().getName();
+            
             if (team.getName().equalsIgnoreCase("ter")) {
                 totalTers++;
-                terStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), isAlive));
+                terStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive));
                 if (isAlive) aliveTers++;
             } else if (team.getName().equalsIgnoreCase("konter")) {
                 totalKonters++;
-                konterStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), isAlive));
+                konterStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive));
                 if (isAlive) aliveKonters++;
             }
         }
@@ -78,8 +79,9 @@ public class MatchManager {
             PlayerTeam team = player.getScoreboard().getPlayersTeam(player.getScoreboardName());
             if (team == null) continue;
             boolean isAlive = player.isAlive() && player.gameMode.getGameModeForPlayer() != GameType.SPECTATOR;
-            if (team.getName().equalsIgnoreCase("ter")) terStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), isAlive));
-            else if (team.getName().equalsIgnoreCase("konter")) konterStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), isAlive));
+            String name = player.getGameProfile().getName();
+            if (team.getName().equalsIgnoreCase("ter")) terStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive));
+            else if (team.getName().equalsIgnoreCase("konter")) konterStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive));
         }
         PacketHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new SyncMatchStatePacket(terScore, konterScore, matchTimer, bombPlanted, isRoundOver, roundWinner, winReason, terStates, konterStates));
     }

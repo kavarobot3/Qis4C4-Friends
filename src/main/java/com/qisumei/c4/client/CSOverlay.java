@@ -18,6 +18,8 @@ public class CSOverlay implements IGuiOverlay {
     private static String roundWinner = "", winReason = "";
     private static List<SyncMatchStatePacket.PlayerState> terPlayers = new ArrayList<>();
     private static List<SyncMatchStatePacket.PlayerState> konterPlayers = new ArrayList<>();
+    public static List<SyncMatchStatePacket.PlayerState> getTerPlayers() { return terPlayers; }
+    public static List<SyncMatchStatePacket.PlayerState> getKonterPlayers() { return konterPlayers; }
 
     public static void updateState(SyncMatchStatePacket packet) {
         terScore = packet.terScore; konterScore = packet.konterScore; timeLeftTicks = packet.timeLeftTicks;
