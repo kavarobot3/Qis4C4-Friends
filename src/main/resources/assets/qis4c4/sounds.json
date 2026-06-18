@@ -30,5 +30,13 @@
       "pitch": 1.0
     }],
     "subtitle": "subtitles.qis4c4.c4countdown"
+  },
+  "c4def": {
+    "sounds": [{
+      "name": "qis4c4:c4def",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.c4def"
   }
 }

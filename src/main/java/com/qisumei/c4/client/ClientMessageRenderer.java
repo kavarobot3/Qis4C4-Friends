@@ -1,143 +1,83 @@
 package com.qisumei.c4.client;
 
-import com.qisumei.c4.qis4c4;
-import com.qisumei.c4.sound.ModSounds;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = qis4c4.MODID)
+@Mod.EventBusSubscriber(value={Dist.CLIENT}, modid="qis4c4")
 public class ClientMessageRenderer {
-
-    private static class MessageData {
-        String text;
-        long expireTime;
-
-        MessageData(String text, long expireTime) {
-            this.text = text;
-            this.expireTime = expireTime;
-        }
-
-        boolean isExpired() {
-            return System.currentTimeMillis() > expireTime;
-        }
-    }
-
     private static final Map<UUID, MessageData> currentMessages = new HashMap<>();
-
-    private static long lastRenderTime = 0;
+    private static long lastRenderTime = 0L;
     private static String cachedText = "";
-    private static int cachedX = 0;
-    private static int cachedY = 0;
-    private static final long UPDATE_INTERVAL_MS = 500;
-    private static final int Y_OFFSET = +30;
-
-    // 倒计时音效实例
-    private static SimpleSoundInstance countdownSound = null;
+    private static int cachedX = 0, cachedY = 0;
 
     public static void showMessage(Component message, int durationMs) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
-
-        UUID playerId = mc.player.getUUID();
-        long expireTime = System.currentTimeMillis() + durationMs;
-        currentMessages.put(playerId, new MessageData(message.getString(), expireTime));
+        currentMessages.put(mc.player.getUUID(), new MessageData(message.getString(), System.currentTimeMillis() + durationMs));
         updateCache(mc);
     }
 
-    public static void showMessage(Component message) {
-        showMessage(message, 2000);
-    }
-
-    public static void clearMessage() {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null) {
-            currentMessages.remove(mc.player.getUUID());
-        }
-    }
-
-    // 播放倒计时音效
-    public static void playCountdownSound() {
+    public static void startInstallCountdown(int totalSeconds) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
-
-        if (countdownSound == null) {
-            SoundEvent soundEvent = ModSounds.C4_COUNTDOWN.get();
-            countdownSound = SimpleSoundInstance.forUI(soundEvent, 1.0f, 1.0f);
-            mc.getSoundManager().play(countdownSound);
-        }
+        long now = System.currentTimeMillis();
+        currentMessages.put(mc.player.getUUID(), new MessageData("", now + totalSeconds * 1000L + 1000L, now, totalSeconds * 1000, "install"));
+        updateCache(mc);
     }
 
-    // 停止倒计时音效
-    public static void stopCountdownSound() {
-        if (countdownSound != null) {
-            Minecraft.getInstance().getSoundManager().stop(countdownSound);
-            countdownSound = null;
-        }
+    public static void startDefuseCountdown(int totalSeconds) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        long now = System.currentTimeMillis();
+        currentMessages.put(mc.player.getUUID(), new MessageData("", now + totalSeconds * 1000L + 1000L, now, totalSeconds * 1000, "defuse"));
+        updateCache(mc);
     }
 
     private static void updateCache(Minecraft mc) {
         if (mc.player == null) return;
-
-        UUID playerId = mc.player.getUUID();
-        MessageData msg = currentMessages.get(playerId);
-
-        if (msg == null || msg.isExpired()) {
-            if (msg != null && msg.isExpired()) {
-                currentMessages.remove(playerId);
-            }
-            cachedText = "";
-            return;
-        }
-
-        Font font = mc.font;
-        int screenWidth = mc.getWindow().getGuiScaledWidth();
-        int textWidth = font.width(msg.text);
-        cachedX = (screenWidth - textWidth) / 2;
-        cachedY = mc.getWindow().getGuiScaledHeight() / 2 + Y_OFFSET;
-        cachedText = msg.text;
-        lastRenderTime = System.currentTimeMillis();
-    }
-
-    private static void cleanExpiredMessages() {
-        currentMessages.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        MessageData msg = currentMessages.get(mc.player.getUUID());
+        if (msg == null || msg.isExpired()) { cachedText = ""; return; }
+        String displayText = msg.isCountdown ? msg.getCountdownText() : msg.text;
+        if (displayText == null || displayText.isEmpty()) { cachedText = ""; return; }
+        cachedX = (mc.getWindow().getGuiScaledWidth() - mc.font.width(displayText)) / 2;
+        cachedY = mc.getWindow().getGuiScaledHeight() / 2 - 30;
+        cachedText = displayText;
     }
 
     @SubscribeEvent
     public static void onRenderGui(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.options.hideGui) return;
+        currentMessages.entrySet().removeIf(e -> e.getValue().isExpired());
+        if (currentMessages.get(mc.player.getUUID()) == null) { cachedText = ""; return; }
+        if (System.currentTimeMillis() - lastRenderTime >= 500L) updateCache(mc);
+        if (!cachedText.isEmpty()) event.getGuiGraphics().drawString(mc.font, cachedText, cachedX, cachedY, 0xFFFFFF, false);
+    }
 
-        cleanExpiredMessages();
-
-        UUID playerId = mc.player.getUUID();
-        MessageData msg = currentMessages.get(playerId);
-
-        if (msg == null || msg.isExpired()) {
-            cachedText = "";
-            return;
+    private static class MessageData {
+        String text, type; long expireTime, startTime; boolean isCountdown; int totalDuration;
+        MessageData(String text, long expireTime) { this.text = text; this.expireTime = expireTime; this.isCountdown = false; this.type = "message"; }
+        MessageData(String text, long expireTime, long startTime, int totalDuration, String type) {
+            this.text = text; this.expireTime = expireTime; this.isCountdown = true; this.startTime = startTime; this.totalDuration = totalDuration; this.type = type;
         }
-
-        long now = System.currentTimeMillis();
-        if (now - lastRenderTime >= UPDATE_INTERVAL_MS) {
-            updateCache(mc);
+        boolean isExpired() { return System.currentTimeMillis() > this.expireTime; }
+        String getCountdownText() {
+            if (!this.isCountdown) return this.text;
+            long remaining = Math.max(0L, totalDuration - (System.currentTimeMillis() - startTime));
+            if (remaining <= 0) return null;
+            int sec = (int)((remaining + 999) / 1000);
+            if ("install".equals(type)) return "\u00a7e Установка... завершение через " + sec + " сек. ";
+            if ("defuse".equals(type)) return "\u00a7e Разминирование... завершение через " + sec + " сек. ";
+            return text;
         }
-
-        if (cachedText.isEmpty()) return;
-
-        GuiGraphics guiGraphics = event.getGuiGraphics();
-        Font font = mc.font;
-        guiGraphics.drawString(font, cachedText, cachedX, cachedY, 0xFFFFFF, false);
     }
 }
