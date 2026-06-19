@@ -6,6 +6,6 @@ import net.minecraft.sounds.SoundSource;
 
 public class C4InitiateSoundInstance extends C4TickableSoundInstance {
     public C4InitiateSoundInstance(C4Entity c4) {
-        super(ModSounds.C4_INITIATE.get(), SoundSource.BLOCKS, c4, 32.0f, true);
+        super(ModSounds.C4_INITIATE.get(), SoundSource.BLOCKS, c4, 48.0f, false);
     }
 }
