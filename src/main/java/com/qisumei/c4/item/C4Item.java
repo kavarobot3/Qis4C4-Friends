@@ -8,7 +8,6 @@ import javax.annotation.Nonnull;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -20,53 +19,72 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class C4Item extends Item {
-    private static final ThreadLocal<Boolean> isCompleted = ThreadLocal.withInitial(() -> false);
+    private static final Map<UUID, Boolean> installComplete = new ConcurrentHashMap<>();
 
-    public C4Item() { super(new Item.Properties().stacksTo(1)); }
+    public C4Item() {
+        super(new Item.Properties().stacksTo(1));
+    }
 
-    @Nonnull @Override public UseAnim getUseAnimation(@Nonnull ItemStack stack) { return UseAnim.BLOCK; }
+    @Nonnull
+    @Override
+    public UseAnim getUseAnimation(@Nonnull ItemStack stack) {
+        return UseAnim.BLOCK;
+    }
 
-    @Nonnull @Override public InteractionResultHolder<ItemStack> use(@Nonnull Level world, @Nonnull Player player, @Nonnull InteractionHand hand) {
-        // --- ПРОВЕРКА БЛОКА ПРИ НАЧАЛЕ УСТАНОВКИ ---
+    @Nonnull
+    @Override
+    public InteractionResultHolder<ItemStack> use(@Nonnull Level world, @Nonnull Player player, @Nonnull InteractionHand hand) {
         Block standingBlock = world.getBlockState(player.blockPosition().below()).getBlock();
         String blockId = ForgeRegistries.BLOCKS.getKey(standingBlock).toString();
         
         if (!Config.isBlockAllowed(blockId)) {
-            if (!world.isClientSide()) PacketHandler.sendToPlayer((ServerPlayer)player, "\u00a7c C4 можно установить только на: " + Config.allowedBlocks, 3000);
+            if (!world.isClientSide()) {
+                PacketHandler.sendToPlayer((ServerPlayer) player, "§c C4 можно установить только на: " + Config.allowedBlocks, 3000);
+            }
             return InteractionResultHolder.fail(player.getItemInHand(hand));
         }
 
         player.startUsingItem(hand);
-        isCompleted.set(false);
-        world.playSound(null, player.blockPosition(), (SoundEvent)ModSounds.C4_PLANT.get(), SoundSource.BLOCKS, 30000.0f, 1.0f);
-        if (!world.isClientSide()) PacketHandler.sendToPlayer((ServerPlayer)player, "INSTALL_START", 0);
+        installComplete.put(player.getUUID(), false);
+        world.playSound(null, player.blockPosition(), ModSounds.C4_PLANT.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
+
+        if (!world.isClientSide()) {
+            PacketHandler.sendToPlayer((ServerPlayer) player, "INSTALL_START", 0);
+        }
         return InteractionResultHolder.consume(player.getItemInHand(hand));
     }
 
-    @Override public void releaseUsing(@Nonnull ItemStack stack, @Nonnull Level world, @Nonnull LivingEntity user, int timeCharged) {
+    @Override
+    public void releaseUsing(@Nonnull ItemStack stack, @Nonnull Level world, @Nonnull LivingEntity user, int timeCharged) {
         if (!(user instanceof Player)) return;
-        if (isCompleted.get()) { isCompleted.remove(); return; }
-        if (!world.isClientSide() && world.getServer() != null) world.getServer().getCommands().performPrefixedCommand(world.getServer().createCommandSourceStack().withSuppressedOutput(), "stopsound @a * qis4c4:c4plant");
-        isCompleted.remove();
+        if (!world.isClientSide() && !installComplete.getOrDefault(user.getUUID(), false)) {
+            PacketHandler.sendToPlayer((ServerPlayer) user, "INSTALL_STOP", 0);
+        }
+        installComplete.remove(user.getUUID());
     }
 
-    @Override public void onUseTick(@Nonnull Level world, @Nonnull LivingEntity user, @Nonnull ItemStack stack, int rem) {
+    @Override
+    public void onUseTick(@Nonnull Level world, @Nonnull LivingEntity user, @Nonnull ItemStack stack, int rem) {
         if (!(user instanceof Player) || world.isClientSide()) return;
         if (rem == 1) {
-            isCompleted.set(true);
-            // --- ПРОВЕРКА БЛОКА ПРИ ЗАВЕРШЕНИИ (на случай если игрок отошел) ---
+            installComplete.put(user.getUUID(), true);
             BlockPos placePos = user.blockPosition();
-            String blockId = ForgeRegistries.BLOCKS.getKey(world.getBlockState(placePos.below()).getBlock()).toString();
-            
-            if (Config.isBlockAllowed(blockId)) {
-                if (world instanceof ServerLevel) ((ServerLevel)world).addFreshEntity(new C4Entity(world, placePos, true));
-                if (!((Player)user).getAbilities().instabuild) stack.shrink(1);
-            } else {
-                PacketHandler.sendToPlayer((ServerPlayer)user, "\u00a7c C4 можно установить только на разрешенные блоки!", 3000);
+            if (world instanceof ServerLevel) {
+                ((ServerLevel) world).addFreshEntity(new C4Entity(world, placePos, true));
+            }
+            if (!((Player) user).getAbilities().instabuild) {
+                stack.shrink(1);
             }
         }
     }
-    @Override public int getUseDuration(@Nonnull ItemStack stack) { return 70; }
+
+    @Override
+    public int getUseDuration(@Nonnull ItemStack stack) {
+        return 70;
+    }
 }

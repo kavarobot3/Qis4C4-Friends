@@ -193,7 +193,6 @@ Writing Output: C:\Users\Administrator\Desktop\C4-Pro\build\reobfJar\output.jar
   assets/qis4c4/textures/
   assets/qis4c4/textures/block/
   assets/qis4c4/textures/block/c4.png
-  assets/qis4c4/textures/block/c4_e.png
   assets/qis4c4/textures/item/
   assets/qis4c4/textures/item/c4.png
   com/

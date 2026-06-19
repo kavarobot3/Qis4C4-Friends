@@ -15,7 +15,6 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(value={Dist.CLIENT}, modid="qis4c4")
 public class ClientMessageRenderer {
     private static final Map<UUID, MessageData> currentMessages = new HashMap<>();
-    private static long lastRenderTime = 0L;
     private static String cachedText = "";
     private static int cachedX = 0, cachedY = 0;
 
@@ -24,6 +23,14 @@ public class ClientMessageRenderer {
         if (mc.player == null) return;
         currentMessages.put(mc.player.getUUID(), new MessageData(message.getString(), System.currentTimeMillis() + durationMs));
         updateCache(mc);
+    }
+
+    public static void clearCurrentMessage() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) {
+            currentMessages.remove(mc.player.getUUID());
+            cachedText = "";
+        }
     }
 
     public static void startInstallCountdown(int totalSeconds) {
@@ -59,8 +66,10 @@ public class ClientMessageRenderer {
         if (mc.player == null || mc.options.hideGui) return;
         currentMessages.entrySet().removeIf(e -> e.getValue().isExpired());
         if (currentMessages.get(mc.player.getUUID()) == null) { cachedText = ""; return; }
-        if (System.currentTimeMillis() - lastRenderTime >= 500L) updateCache(mc);
-        if (!cachedText.isEmpty()) event.getGuiGraphics().drawString(mc.font, cachedText, cachedX, cachedY, 0xFFFFFF, false);
+        updateCache(mc);
+        if (!cachedText.isEmpty()) {
+            event.getGuiGraphics().drawString(mc.font, cachedText, cachedX, cachedY, 0xFFFFFF, false);
+        }
     }
 
     private static class MessageData {
@@ -75,8 +84,8 @@ public class ClientMessageRenderer {
             long remaining = Math.max(0L, totalDuration - (System.currentTimeMillis() - startTime));
             if (remaining <= 0) return null;
             int sec = (int)((remaining + 999) / 1000);
-            if ("install".equals(type)) return "\u00a7e Установка... завершение через " + sec + " сек. ";
-            if ("defuse".equals(type)) return "\u00a7e Разминирование... завершение через " + sec + " сек. ";
+            if ("install".equals(type)) return "§e Установка... " + sec + " сек. ";
+            if ("defuse".equals(type)) return "§e Разминирование... " + sec + " сек. ";
             return text;
         }
     }
