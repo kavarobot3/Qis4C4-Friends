@@ -31,10 +31,47 @@ public class ModSounds {
     public static final RegistryObject<SoundEvent> CTW_SOUND = SOUND_EVENTS.register("ctw",
         () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "ctw"), 30.0f));
 
-    // Звук ноты для ускоренного биения (используется как заменитель, но мы заменим его на C4_COUNTDOWN)
-    public static SoundEvent ALARM_SOUND() {
-        return ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation("minecraft", "block.note_block.hat"));
-    }
+    public static final RegistryObject<SoundEvent> C4_DISARMFINISH = SOUND_EVENTS.register("c4_disarmfinish",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "c4_disarmfinish"), 16.0f));
+
+    public static final RegistryObject<SoundEvent> C4_INITIATE = SOUND_EVENTS.register("c4_initiate",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "c4_initiate"), 32.0f));
+
+    public static final RegistryObject<SoundEvent> C4_BEEP2 = SOUND_EVENTS.register("c4_beep2",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "c4_beep2"), 32.0f));
+
+    public static final RegistryObject<SoundEvent> C4_BEEP2_10SEC = SOUND_EVENTS.register("c4_beep2_10sec",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "c4_beep2_10sec"), 32.0f));
+
+    public static final RegistryObject<SoundEvent> C4_BEEP3 = SOUND_EVENTS.register("c4_beep3",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "c4_beep3"), 32.0f));
+
+    public static final RegistryObject<SoundEvent> C4_BEEP3_10SEC = SOUND_EVENTS.register("c4_beep3_10sec",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "c4_beep3_10sec"), 32.0f));
+
+    public static final RegistryObject<SoundEvent> C4_CLICK = SOUND_EVENTS.register("c4_click",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "c4_click"), 8.0f));
+
+    public static final RegistryObject<SoundEvent> KEY_PRESS1 = SOUND_EVENTS.register("key_press1",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "key_press1"), 8.0f));
+
+    public static final RegistryObject<SoundEvent> KEY_PRESS2 = SOUND_EVENTS.register("key_press2",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "key_press2"), 8.0f));
+
+    public static final RegistryObject<SoundEvent> KEY_PRESS3 = SOUND_EVENTS.register("key_press3",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "key_press3"), 8.0f));
+
+    public static final RegistryObject<SoundEvent> KEY_PRESS4 = SOUND_EVENTS.register("key_press4",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "key_press4"), 8.0f));
+
+    public static final RegistryObject<SoundEvent> KEY_PRESS5 = SOUND_EVENTS.register("key_press5",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "key_press5"), 8.0f));
+
+    public static final RegistryObject<SoundEvent> KEY_PRESS6 = SOUND_EVENTS.register("key_press6",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "key_press6"), 8.0f));
+
+    public static final RegistryObject<SoundEvent> KEY_PRESS7 = SOUND_EVENTS.register("key_press7",
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "key_press7"), 8.0f));
 
     public static void register(IEventBus bus) {
         SOUND_EVENTS.register(bus);

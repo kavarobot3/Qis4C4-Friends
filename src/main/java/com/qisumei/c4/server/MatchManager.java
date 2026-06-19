@@ -7,8 +7,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraftforge.network.PacketDistributor;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class MatchManager {
     private static final MatchManager INSTANCE = new MatchManager();
@@ -19,10 +19,13 @@ public class MatchManager {
     private static final int ROUND_TIME = 115 * 20; 
     private int matchTimer = ROUND_TIME;
     private boolean bombPlanted = false;
+    private int bombTimer = 0;
     private boolean roundActive = true;
     private boolean isRoundOver = false;
     private String roundWinner = "";
     private String winReason = "";
+
+    private final Map<UUID, PlayerStats> statsMap = new HashMap<>();
 
     public void tick(MinecraftServer server) {
         if (!roundActive) return;
@@ -46,11 +49,13 @@ public class MatchManager {
             
             if (team.getName().equalsIgnoreCase("ter")) {
                 totalTers++;
-                terStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive));
+                PlayerStats ps = getStats(player.getUUID());
+                terStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive, ps.getKills(), ps.getDeaths()));
                 if (isAlive) aliveTers++;
             } else if (team.getName().equalsIgnoreCase("konter")) {
                 totalKonters++;
-                konterStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive));
+                PlayerStats ps2 = getStats(player.getUUID());
+                konterStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive, ps2.getKills(), ps2.getDeaths()));
                 if (isAlive) aliveKonters++;
             }
         }
@@ -58,6 +63,8 @@ public class MatchManager {
         if (!bombPlanted) {
             matchTimer--;
             if (matchTimer <= 0) winRound("konter", "Время вышло!");
+        } else {
+            if (bombTimer > 0) bombTimer--;
         }
 
         if (totalTers > 0 && totalKonters > 0) {
@@ -80,15 +87,18 @@ public class MatchManager {
             if (team == null) continue;
             boolean isAlive = player.isAlive() && player.gameMode.getGameModeForPlayer() != GameType.SPECTATOR;
             String name = player.getGameProfile().getName();
-            if (team.getName().equalsIgnoreCase("ter")) terStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive));
-            else if (team.getName().equalsIgnoreCase("konter")) konterStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive));
+            PlayerStats ps = getStats(player.getUUID());
+            if (team.getName().equalsIgnoreCase("ter")) terStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive, ps.getKills(), ps.getDeaths()));
+            else if (team.getName().equalsIgnoreCase("konter")) konterStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive, ps.getKills(), ps.getDeaths()));
         }
-        PacketHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new SyncMatchStatePacket(terScore, konterScore, matchTimer, bombPlanted, isRoundOver, roundWinner, winReason, terStates, konterStates));
+        PacketHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new SyncMatchStatePacket(terScore, konterScore, matchTimer, bombPlanted, bombTimer, isRoundOver, roundWinner, winReason, terStates, konterStates));
     }
 
     public void setBombPlanted(boolean planted) {
         if (isRoundOver) return;
         this.bombPlanted = planted;
+        if (planted) this.bombTimer = 800;
+        else this.bombTimer = 0;
     }
 
     public void triggerDefuse() { if (roundActive && !isRoundOver) winRound("konter", "Бомба обезврежена!"); }
@@ -108,12 +118,41 @@ public class MatchManager {
         roundWinner = "";
         winReason = "";
         bombPlanted = false;
+        bombTimer = 0;
         matchTimer = ROUND_TIME;
     }
 
     public void resetMatch() {
         terScore = 0;
         konterScore = 0;
+        statsMap.clear();
         startNewRound();
+    }
+
+    public PlayerStats getStats(UUID uuid) {
+        return statsMap.computeIfAbsent(uuid, k -> new PlayerStats());
+    }
+
+    public void addKill(UUID killer) {
+        getStats(killer).addKill();
+    }
+
+    public void addDeath(UUID victim) {
+        getStats(victim).addDeath();
+    }
+
+    public String getMVPForTeam(String team, MinecraftServer server) {
+        String mvpName = null;
+        int maxKills = -1;
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            PlayerTeam t = player.getScoreboard().getPlayersTeam(player.getScoreboardName());
+            if (t == null || !t.getName().equalsIgnoreCase(team)) continue;
+            PlayerStats ps = getStats(player.getUUID());
+            if (ps.getKills() > maxKills) {
+                maxKills = ps.getKills();
+                mvpName = player.getGameProfile().getName();
+            }
+        }
+        return mvpName;
     }
 }

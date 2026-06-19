@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ItemLike;
 
 public class C4EntityRenderer extends EntityRenderer<C4Entity> {
     private final ItemRenderer itemRenderer;
@@ -21,7 +20,7 @@ public class C4EntityRenderer extends EntityRenderer<C4Entity> {
     public C4EntityRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.itemRenderer = context.getItemRenderer();
-        this.c4ItemStack = new ItemStack((ItemLike)qis4c4.QISC4_ITEM.get());
+        this.c4ItemStack = new ItemStack(qis4c4.QISC4_ITEM.get());
     }
 
     @Override

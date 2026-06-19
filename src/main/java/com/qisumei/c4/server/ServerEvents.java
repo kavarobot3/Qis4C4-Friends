@@ -6,8 +6,10 @@ import com.qisumei.c4.network.UIMessagePacket;
 import com.qisumei.c4.qis4c4;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
@@ -19,6 +21,18 @@ public class ServerEvents {
     public static void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             MatchManager.getInstance().tick(event.getServer());
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLivingDeath(LivingDeathEvent event) {
+        if (event.getSource().getEntity() instanceof ServerPlayer killer) {
+            if (event.getEntity() instanceof ServerPlayer) {
+                MatchManager.getInstance().addKill(killer.getUUID());
+            }
+        }
+        if (event.getEntity() instanceof ServerPlayer victim) {
+            MatchManager.getInstance().addDeath(victim.getUUID());
         }
     }
 

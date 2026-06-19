@@ -1,6 +1,7 @@
 package com.qisumei.c4.item;
 
 import com.qisumei.c4.Config;
+import com.qisumei.c4.client.renderer.C4FirstPersonRenderer;
 import com.qisumei.c4.entity.C4Entity;
 import com.qisumei.c4.network.PacketHandler;
 import com.qisumei.c4.sound.ModSounds;
@@ -18,10 +19,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.registries.ForgeRegistries;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public class C4Item extends Item {
     private static final Map<UUID, Boolean> installComplete = new ConcurrentHashMap<>();
@@ -85,6 +88,18 @@ public class C4Item extends Item {
 
     @Override
     public int getUseDuration(@Nonnull ItemStack stack) {
-        return 70;
+        return 60;
+    }
+
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
+            private final C4FirstPersonRenderer renderer = new C4FirstPersonRenderer();
+
+            @Override
+            public C4FirstPersonRenderer getCustomRenderer() {
+                return renderer;
+            }
+        });
     }
 }

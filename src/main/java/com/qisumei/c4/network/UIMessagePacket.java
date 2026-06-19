@@ -50,7 +50,7 @@ public class UIMessagePacket {
             } else if ("BANNER_OFF".equals(packet.message)) {
                 CSOverlay.showBanner = false;
             } else if ("INSTALL_START".equals(packet.message)) {
-                ClientMessageRenderer.startInstallCountdown(4);
+                ClientMessageRenderer.startInstallCountdown(3000);
             } else if ("DEFUSE_START".equals(packet.message)) {
                 ClientMessageRenderer.startDefuseCountdown(5);
             } else if ("INSTALL_STOP".equals(packet.message) || "DEFUSE_STOP".equals(packet.message)) {

@@ -33,11 +33,11 @@ public class ClientMessageRenderer {
         }
     }
 
-    public static void startInstallCountdown(int totalSeconds) {
+    public static void startInstallCountdown(int totalMillis) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
         long now = System.currentTimeMillis();
-        currentMessages.put(mc.player.getUUID(), new MessageData("", now + totalSeconds * 1000L + 1000L, now, totalSeconds * 1000, "install"));
+        currentMessages.put(mc.player.getUUID(), new MessageData("", now + totalMillis + 1000L, now, totalMillis, "install"));
         updateCache(mc);
     }
 
@@ -83,9 +83,14 @@ public class ClientMessageRenderer {
             if (!this.isCountdown) return this.text;
             long remaining = Math.max(0L, totalDuration - (System.currentTimeMillis() - startTime));
             if (remaining <= 0) return null;
-            int sec = (int)((remaining + 999) / 1000);
-            if ("install".equals(type)) return "§e Установка... " + sec + " сек. ";
-            if ("defuse".equals(type)) return "§e Разминирование... " + sec + " сек. ";
+            if ("install".equals(type)) {
+                float secFloat = remaining / 1000.0f;
+                return "§e Установка... " + String.format("%.1f", secFloat) + " сек. ";
+            }
+            if ("defuse".equals(type)) {
+                int sec = (int)((remaining + 999) / 1000);
+                return "§e Разминирование... " + sec + " сек. ";
+            }
             return text;
         }
     }

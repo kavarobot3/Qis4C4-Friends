@@ -1,7 +1,7 @@
 {
   "tw": {
     "sounds": [{
-      "name": "qis4c4:tw",
+      "name": "qis4c4:c4_explode1",
       "volume": 1.0,
       "pitch": 1.0
     }],
@@ -33,10 +33,122 @@
   },
   "c4def": {
     "sounds": [{
-      "name": "qis4c4:c4def",
+      "name": "qis4c4:c4_disarmstart",
       "volume": 1.0,
       "pitch": 1.0
     }],
     "subtitle": "subtitles.qis4c4.c4def"
+  },
+  "c4_disarmfinish": {
+    "sounds": [{
+      "name": "qis4c4:c4_disarmfinish",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.c4_disarmfinish"
+  },
+  "c4_initiate": {
+    "sounds": [{
+      "name": "qis4c4:c4_initiate",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.c4_initiate"
+  },
+  "c4_beep2": {
+    "sounds": [{
+      "name": "qis4c4:c4_beep2",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.c4_beep2"
+  },
+  "c4_beep2_10sec": {
+    "sounds": [{
+      "name": "qis4c4:c4_beep2_10sec",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.c4_beep2_10sec"
+  },
+  "c4_beep3": {
+    "sounds": [{
+      "name": "qis4c4:c4_beep3",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.c4_beep3"
+  },
+  "c4_beep3_10sec": {
+    "sounds": [{
+      "name": "qis4c4:c4_beep3_10sec",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.c4_beep3_10sec"
+  },
+  "c4_click": {
+    "sounds": [{
+      "name": "qis4c4:c4_click",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.c4_click"
+  },
+  "key_press1": {
+    "sounds": [{
+      "name": "qis4c4:key_press1",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.key_press1"
+  },
+  "key_press2": {
+    "sounds": [{
+      "name": "qis4c4:key_press2",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.key_press2"
+  },
+  "key_press3": {
+    "sounds": [{
+      "name": "qis4c4:key_press3",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.key_press3"
+  },
+  "key_press4": {
+    "sounds": [{
+      "name": "qis4c4:key_press4",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.key_press4"
+  },
+  "key_press5": {
+    "sounds": [{
+      "name": "qis4c4:key_press5",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.key_press5"
+  },
+  "key_press6": {
+    "sounds": [{
+      "name": "qis4c4:key_press6",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.key_press6"
+  },
+  "key_press7": {
+    "sounds": [{
+      "name": "qis4c4:key_press7",
+      "volume": 1.0,
+      "pitch": 1.0
+    }],
+    "subtitle": "subtitles.qis4c4.key_press7"
   }
 }
