@@ -100,7 +100,7 @@ public class ClientMessageRenderer {
             int circleCy = bannerY + bannerH / 2;
             int circleRadius = 11;
             int circleThickness = 3;
-            drawProgressRing(g, circleCx, circleCy, circleRadius, circleThickness, progress, 0xFFFF4444, 0xFF666666);
+            drawProgressRing(g, circleCx, circleCy, circleRadius, circleThickness, progress, 0xFF4488FF, 0xFF666666);
 
             int labelX = bannerX + 40;
             int labelY = bannerY + (bannerH - font.lineHeight) / 2;
