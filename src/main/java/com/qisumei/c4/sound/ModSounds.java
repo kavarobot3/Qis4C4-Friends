@@ -17,7 +17,7 @@ public class ModSounds {
     // - взрыв: 48 блоков (громкий и далеко)
     // - победа: 30 блоков
     public static final RegistryObject<SoundEvent> C4_PLANT = SOUND_EVENTS.register("c4plant",
-        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "c4plant"), 12.0f));
+        () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "c4plant"), 48.0f));
 
     public static final RegistryObject<SoundEvent> C4_COUNTDOWN = SOUND_EVENTS.register("c4countdown",
         () -> SoundEvent.createFixedRangeEvent(new ResourceLocation("qis4c4", "c4countdown"), 32.0f));

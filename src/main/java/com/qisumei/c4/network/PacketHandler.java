@@ -15,6 +15,7 @@ public class PacketHandler {
         int id = 0;
         INSTANCE.registerMessage(id++, UIMessagePacket.class, UIMessagePacket::encode, UIMessagePacket::decode, UIMessagePacket::handle);
         INSTANCE.registerMessage(id++, SyncMatchStatePacket.class, SyncMatchStatePacket::encode, SyncMatchStatePacket::new, SyncMatchStatePacket::handle);
+        INSTANCE.registerMessage(id++, C4PlantSoundPacket.class, C4PlantSoundPacket::encode, C4PlantSoundPacket::new, C4PlantSoundPacket::handle);
     }
 
     public static void sendToPlayer(ServerPlayer player, String message, int duration) {

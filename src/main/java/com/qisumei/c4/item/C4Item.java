@@ -3,10 +3,11 @@ package com.qisumei.c4.item;
 import com.qisumei.c4.Config;
 import com.qisumei.c4.client.renderer.C4FirstPersonRenderer;
 import com.qisumei.c4.entity.C4Entity;
+import com.qisumei.c4.network.C4PlantSoundPacket;
 import com.qisumei.c4.network.PacketHandler;
-import com.qisumei.c4.sound.ModSounds;
 import javax.annotation.Nonnull;
 import net.minecraft.core.BlockPos;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -54,9 +55,9 @@ public class C4Item extends Item {
 
         player.startUsingItem(hand);
         installComplete.put(player.getUUID(), false);
-        world.playSound(null, player.blockPosition(), ModSounds.C4_PLANT.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
 
         if (!world.isClientSide()) {
+            PacketHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new C4PlantSoundPacket(player.blockPosition()));
             PacketHandler.sendToPlayer((ServerPlayer) player, "INSTALL_START", 0);
         }
         return InteractionResultHolder.consume(player.getItemInHand(hand));

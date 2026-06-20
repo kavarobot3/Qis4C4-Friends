@@ -12,9 +12,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = "qis4c4")
@@ -32,44 +30,31 @@ public class C4SoundEngine {
             return;
         }
 
-        Set<UUID> current = new HashSet<>();
         for (Entity entity : mc.level.entitiesForRendering()) {
             if (entity instanceof C4Entity c4 && c4.isAlive()) {
-                UUID uuid = c4.getUUID();
-                current.add(uuid);
-                managers.computeIfAbsent(uuid, k -> new C4SoundManager()).tick(mc, c4);
+                managers.computeIfAbsent(c4.getUUID(), k -> new C4SoundManager()).tick(mc, c4);
             }
         }
 
         managers.keySet().removeIf(uuid -> {
-            if (current.contains(uuid)) return false;
             C4SoundManager mgr = managers.get(uuid);
-            if (mgr != null) mgr.stopAll();
-            return true;
+            if (mgr != null && !mgr.isEntityAlive()) {
+                mgr.stopAll();
+                return true;
+            }
+            return false;
         });
     }
 
     private static class C4SoundManager {
+        private C4Entity c4Entity;
         private C4DefuseSoundInstance defuseSound;
-        private C4InitiateSoundInstance initiateSound;
         private int nextBeepTick = -1;
         private boolean togglePitch = false;
 
         public void tick(Minecraft mc, C4Entity c4) {
+            this.c4Entity = c4;
             int ticksLeft = c4.getTicksLeft();
-
-            // Post-plant initiation sound (plays briefly after plant)
-            if (ticksLeft > 750) {
-                if (initiateSound == null) {
-                    initiateSound = new C4InitiateSoundInstance(c4);
-                    mc.getSoundManager().play(initiateSound);
-                }
-            } else {
-                if (initiateSound != null) {
-                    initiateSound.stopInstance();
-                    initiateSound = null;
-                }
-            }
 
             // Defuse sound management
             String defuser = c4.getDefusingPlayerUUID();
@@ -125,14 +110,14 @@ public class C4SoundEngine {
             }
         }
 
+        public boolean isEntityAlive() {
+            return c4Entity != null && c4Entity.isAlive();
+        }
+
         public void stopAll() {
             if (defuseSound != null) {
                 defuseSound.stopInstance();
                 defuseSound = null;
-            }
-            if (initiateSound != null) {
-                initiateSound.stopInstance();
-                initiateSound = null;
             }
         }
     }
