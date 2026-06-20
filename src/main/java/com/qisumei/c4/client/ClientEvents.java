@@ -1,5 +1,6 @@
 package com.qisumei.c4.client;
 
+import com.qisumei.c4.client.renderer.C4EntityRenderer;
 import com.qisumei.c4.client.renderer.C4FirstPersonRenderer;
 import com.qisumei.c4.qis4c4;
 import com.qisumei.c4.network.PacketHandler;

@@ -34,31 +34,10 @@ public class MatchManager {
             return;
         }
 
-        List<SyncMatchStatePacket.PlayerState> terStates = new ArrayList<>();
-        List<SyncMatchStatePacket.PlayerState> konterStates = new ArrayList<>();
-        int aliveTers = 0;
-        int aliveKonters = 0;
-        int totalTers = 0;
-        int totalKonters = 0;
-
-        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            PlayerTeam team = player.getScoreboard().getPlayersTeam(player.getScoreboardName());
-            if (team == null) continue;
-            boolean isAlive = player.isAlive() && player.gameMode.getGameModeForPlayer() != GameType.SPECTATOR;
-            String name = player.getGameProfile().getName();
-            
-            if (team.getName().equalsIgnoreCase("ter")) {
-                totalTers++;
-                PlayerStats ps = getStats(player.getUUID());
-                terStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive, ps.getKills(), ps.getDeaths()));
-                if (isAlive) aliveTers++;
-            } else if (team.getName().equalsIgnoreCase("konter")) {
-                totalKonters++;
-                PlayerStats ps2 = getStats(player.getUUID());
-                konterStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive, ps2.getKills(), ps2.getDeaths()));
-                if (isAlive) aliveKonters++;
-            }
-        }
+        PlayerLists lists = collectPlayers(server);
+        int aliveTers = 0, aliveKonters = 0;
+        for (SyncMatchStatePacket.PlayerState ps : lists.terStates) if (ps.isAlive) aliveTers++;
+        for (SyncMatchStatePacket.PlayerState ps : lists.konterStates) if (ps.isAlive) aliveKonters++;
 
         if (!bombPlanted) {
             matchTimer--;
@@ -67,7 +46,7 @@ public class MatchManager {
             if (bombTimer > 0) bombTimer--;
         }
 
-        if (totalTers > 0 && totalKonters > 0) {
+        if (!lists.terStates.isEmpty() && !lists.konterStates.isEmpty()) {
             if (!bombPlanted) {
                 if (aliveTers == 0) winRound("konter", "Все террористы уничтожены!");
                 else if (aliveKonters == 0) winRound("ter", "Все контр-террористы уничтожены!");
@@ -80,6 +59,11 @@ public class MatchManager {
     }
 
     private void syncToClients(MinecraftServer server) {
+        PlayerLists lists = collectPlayers(server);
+        PacketHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new SyncMatchStatePacket(terScore, konterScore, matchTimer, bombPlanted, bombTimer, isRoundOver, roundWinner, winReason, lists.terStates, lists.konterStates));
+    }
+
+    private PlayerLists collectPlayers(MinecraftServer server) {
         List<SyncMatchStatePacket.PlayerState> terStates = new ArrayList<>();
         List<SyncMatchStatePacket.PlayerState> konterStates = new ArrayList<>();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
@@ -91,8 +75,10 @@ public class MatchManager {
             if (team.getName().equalsIgnoreCase("ter")) terStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive, ps.getKills(), ps.getDeaths()));
             else if (team.getName().equalsIgnoreCase("konter")) konterStates.add(new SyncMatchStatePacket.PlayerState(player.getUUID(), name, isAlive, ps.getKills(), ps.getDeaths()));
         }
-        PacketHandler.INSTANCE.send(PacketDistributor.ALL.noArg(), new SyncMatchStatePacket(terScore, konterScore, matchTimer, bombPlanted, bombTimer, isRoundOver, roundWinner, winReason, terStates, konterStates));
+        return new PlayerLists(terStates, konterStates);
     }
+
+    private record PlayerLists(List<SyncMatchStatePacket.PlayerState> terStates, List<SyncMatchStatePacket.PlayerState> konterStates) {}
 
     public void setBombPlanted(boolean planted) {
         if (isRoundOver) return;

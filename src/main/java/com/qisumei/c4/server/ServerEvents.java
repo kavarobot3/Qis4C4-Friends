@@ -26,6 +26,7 @@ public class ServerEvents {
 
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
+        if (event.getSource().getEntity() == event.getEntity()) return;
         if (event.getSource().getEntity() instanceof ServerPlayer killer) {
             if (event.getEntity() instanceof ServerPlayer) {
                 MatchManager.getInstance().addKill(killer.getUUID());

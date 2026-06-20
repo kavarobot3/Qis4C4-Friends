@@ -14,13 +14,6 @@ public class SyncMatchStatePacket {
     public final String roundWinner, winReason;
     public final List<PlayerState> terPlayers, konterPlayers;
 
-    public SyncMatchStatePacket(int tScore, int ctScore, int time, boolean planted, boolean over, String winner, String reason, List<PlayerState> tPlayers, List<PlayerState> ctPlayers) {
-        this.terScore = tScore; this.konterScore = ctScore; this.timeLeftTicks = time;
-        this.bombPlanted = planted; this.isRoundOver = over; this.roundWinner = winner; this.winReason = reason;
-        this.terPlayers = tPlayers; this.konterPlayers = ctPlayers;
-        this.bombTimer = 0;
-    }
-
     public SyncMatchStatePacket(int tScore, int ctScore, int time, boolean planted, int bombTimer, boolean over, String winner, String reason, List<PlayerState> tPlayers, List<PlayerState> ctPlayers) {
         this.terScore = tScore; this.konterScore = ctScore; this.timeLeftTicks = time;
         this.bombPlanted = planted; this.bombTimer = bombTimer; this.isRoundOver = over; this.roundWinner = winner; this.winReason = reason;

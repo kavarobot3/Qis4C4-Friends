@@ -45,16 +45,24 @@ public class ClientMessageRenderer {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
         long now = System.currentTimeMillis();
-        currentMessages.put(mc.player.getUUID(), new MessageData("", now + totalSeconds * 1000L + 1000L, now, totalSeconds * 1000, "defuse"));
+        currentMessages.put(mc.player.getUUID(), new MessageData("", now + totalSeconds * 1000L, now, totalSeconds * 1000, "defuse"));
         updateCache(mc);
+    }
+
+    public static boolean isDefusing() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return false;
+        MessageData msg = currentMessages.get(mc.player.getUUID());
+        return msg != null && "defuse".equals(msg.type) && !msg.isExpired();
     }
 
     private static void updateCache(Minecraft mc) {
         if (mc.player == null) return;
         MessageData msg = currentMessages.get(mc.player.getUUID());
         if (msg == null || msg.isExpired()) { cachedText = ""; return; }
-        String displayText = msg.isCountdown ? msg.getCountdownText() : msg.text;
-        if (displayText == null || displayText.isEmpty()) { cachedText = ""; return; }
+        String displayText = "defuse".equals(msg.type) ? "" : (msg.isCountdown ? msg.getCountdownText() : msg.text);
+        if (displayText == null) { cachedText = ""; return; }
+        if (displayText.isEmpty()) { cachedText = ""; return; }
         cachedX = (mc.getWindow().getGuiScaledWidth() - mc.font.width(displayText)) / 2;
         cachedY = mc.getWindow().getGuiScaledHeight() / 2 - 30;
         cachedText = displayText;
@@ -65,10 +73,49 @@ public class ClientMessageRenderer {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.options.hideGui) return;
         currentMessages.entrySet().removeIf(e -> e.getValue().isExpired());
-        if (currentMessages.get(mc.player.getUUID()) == null) { cachedText = ""; return; }
-        updateCache(mc);
-        if (!cachedText.isEmpty()) {
-            event.getGuiGraphics().drawString(mc.font, cachedText, cachedX, cachedY, 0xFFFFFF, false);
+        MessageData msg = currentMessages.get(mc.player.getUUID());
+        if (msg == null) { cachedText = ""; return; }
+
+        if ("defuse".equals(msg.type) && !msg.isExpired()) {
+            int screenW = mc.getWindow().getGuiScaledWidth();
+            int screenH = mc.getWindow().getGuiScaledHeight();
+            int centerX = screenW / 2;
+            int centerY = screenH / 2 - 20;
+
+            long remaining = Math.max(0L, msg.totalDuration - (System.currentTimeMillis() - msg.startTime));
+            float progress = (remaining <= 0) ? 1.0f : 1.0f - (float) remaining / msg.totalDuration;
+            float secFloat = remaining / 1000.0f;
+            String timeStr = String.format("%.1f", secFloat);
+
+            GuiGraphics g = event.getGuiGraphics();
+            Font font = mc.font;
+
+            int timeX = centerX - font.width(timeStr) - 8;
+            int timeY = centerY - font.lineHeight / 2;
+            g.drawString(font, timeStr, timeX, timeY, 0xFFFFFF, true);
+
+            drawDefuseCircle(g, centerX, centerY, 12, 4, progress);
+        } else {
+            updateCache(mc);
+            if (!cachedText.isEmpty()) {
+                event.getGuiGraphics().drawString(mc.font, cachedText, cachedX, cachedY, 0xFFFFFF, false);
+            }
+        }
+    }
+
+    private static void drawDefuseCircle(GuiGraphics g, int cx, int cy, int radius, int thickness, float progress) {
+        int innerR = radius - thickness;
+        int fillColor = 0xFFFF4444;
+        int emptyColor = 0xFF666666;
+        for (int dy = -radius; dy <= radius; dy++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                double dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < innerR || dist > radius) continue;
+                double angle = Math.toDegrees(Math.atan2(dx, -dy));
+                if (angle < 0) angle += 360;
+                boolean filled = (angle / 360.0) <= progress;
+                g.fill(cx + dx, cy + dy, cx + dx + 1, cy + dy + 1, filled ? fillColor : emptyColor);
+            }
         }
     }
 
@@ -86,10 +133,6 @@ public class ClientMessageRenderer {
             if ("install".equals(type)) {
                 float secFloat = remaining / 1000.0f;
                 return "§e Установка... " + String.format("%.1f", secFloat) + " сек. ";
-            }
-            if ("defuse".equals(type)) {
-                int sec = (int)((remaining + 999) / 1000);
-                return "§e Разминирование... " + sec + " сек. ";
             }
             return text;
         }

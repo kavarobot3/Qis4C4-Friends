@@ -43,6 +43,14 @@ public class C4Item extends Item {
     @Nonnull
     @Override
     public InteractionResultHolder<ItemStack> use(@Nonnull Level world, @Nonnull Player player, @Nonnull InteractionHand hand) {
+        if (!world.isClientSide()) {
+            String teamName = player.getScoreboardName();
+            if (!Config.isTeamAllowed(teamName)) {
+                PacketHandler.sendToPlayer((ServerPlayer) player, "§c Ваша команда не может использовать C4!", 3000);
+                return InteractionResultHolder.fail(player.getItemInHand(hand));
+            }
+        }
+
         Block standingBlock = world.getBlockState(player.blockPosition().below()).getBlock();
         String blockId = ForgeRegistries.BLOCKS.getKey(standingBlock).toString();
         

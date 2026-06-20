@@ -1,4 +1,4 @@
-package com.qisumei.c4.client;
+package com.qisumei.c4.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;

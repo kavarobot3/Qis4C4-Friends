@@ -10,6 +10,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -21,11 +22,24 @@ public class C4InteractionHandler {
     private static final Map<UUID, Boolean> clientHoldingRMB = new HashMap<>();
 
     private static C4Entity getLookedAtC4(Player player) {
+        Vec3 eyePos = player.getEyePosition(1.0f);
+        Vec3 lookVec = player.getLookAngle();
         AABB box = player.getBoundingBox().inflate(4.0);
+        Entity result = null;
+        double bestDist = Double.MAX_VALUE;
         for (Entity e : player.level().getEntities(player, box, e -> e instanceof C4Entity)) {
-            if (e.isAlive()) return (C4Entity)e;
+            if (!e.isAlive()) continue;
+            AABB targetBox = e.getBoundingBox();
+            var hit = targetBox.clip(eyePos, eyePos.add(lookVec.scale(4.0))).orElse(null);
+            if (hit != null) {
+                double dist = hit.distanceToSqr(eyePos);
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    result = e;
+                }
+            }
         }
-        return null;
+        return (C4Entity) result;
     }
 
     public static void setPlayerHoldingRMB(UUID uuid, boolean holding) {

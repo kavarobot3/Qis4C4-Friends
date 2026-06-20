@@ -36,8 +36,6 @@ public class C4Entity extends Entity {
     private static final EntityDataAccessor<Boolean> IS_PLAYER_PLACED = SynchedEntityData.defineId(C4Entity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<String> DEFUSING_PLAYER_UUID = SynchedEntityData.defineId(C4Entity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Long> DEFUSE_END_TIME = SynchedEntityData.defineId(C4Entity.class, EntityDataSerializers.LONG);
-    private static final EntityDataAccessor<Boolean> COUNTDOWN_SOUND_PLAYED = SynchedEntityData.defineId(C4Entity.class, EntityDataSerializers.BOOLEAN);
-
     public C4Entity(EntityType<? extends C4Entity> type, Level level) {
         super(type, level);
         this.noCulling = true;
@@ -50,7 +48,6 @@ public class C4Entity extends Entity {
         this.entityData.set(IS_PLAYER_PLACED, playerPlaced);
         this.entityData.set(DEFUSING_PLAYER_UUID, "");
         this.entityData.set(DEFUSE_END_TIME, 0L);
-        this.entityData.set(COUNTDOWN_SOUND_PLAYED, false);
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server != null) {
             ModInitializer.updateC4State(server, 1);
@@ -65,7 +62,6 @@ public class C4Entity extends Entity {
         this.entityData.define(IS_PLAYER_PLACED, true);
         this.entityData.define(DEFUSING_PLAYER_UUID, "");
         this.entityData.define(DEFUSE_END_TIME, 0L);
-        this.entityData.define(COUNTDOWN_SOUND_PLAYED, false);
     }
 
     public int getTicksLeft() {
@@ -77,18 +73,29 @@ public class C4Entity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {}
+    protected void readAdditionalSaveData(CompoundTag tag) {
+        if (tag.contains("TicksLeft")) this.entityData.set(TICKS_LEFT, tag.getInt("TicksLeft"));
+        if (tag.contains("IsPlayerPlaced")) this.entityData.set(IS_PLAYER_PLACED, tag.getBoolean("IsPlayerPlaced"));
+        if (tag.contains("DefusingPlayerUUID")) this.entityData.set(DEFUSING_PLAYER_UUID, tag.getString("DefusingPlayerUUID"));
+        if (tag.contains("DefuseEndTime")) this.entityData.set(DEFUSE_END_TIME, tag.getLong("DefuseEndTime"));
+    }
+
     @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {}
+    protected void addAdditionalSaveData(CompoundTag tag) {
+        tag.putInt("TicksLeft", this.entityData.get(TICKS_LEFT));
+        tag.putBoolean("IsPlayerPlaced", this.entityData.get(IS_PLAYER_PLACED));
+        tag.putString("DefusingPlayerUUID", this.entityData.get(DEFUSING_PLAYER_UUID));
+        tag.putLong("DefuseEndTime", this.entityData.get(DEFUSE_END_TIME));
+    }
 
     @Override
     public void tick() {
         super.tick();
         if (this.level().isClientSide) return;
 
-        long defuseEndTime = this.entityData.get(DEFUSE_END_TIME);
-        if (defuseEndTime > 0L) {
-            if (System.currentTimeMillis() >= defuseEndTime) {
+        long defuseEndTick = this.entityData.get(DEFUSE_END_TIME);
+        if (defuseEndTick > 0L) {
+            if (this.level().getGameTime() >= defuseEndTick) {
                 defuse(null);
                 return;
             }
@@ -129,7 +136,7 @@ public class C4Entity extends Entity {
         if (!this.entityData.get(DEFUSING_PLAYER_UUID).isEmpty()) return;
 
         this.entityData.set(DEFUSING_PLAYER_UUID, player.getUUID().toString());
-        this.entityData.set(DEFUSE_END_TIME, System.currentTimeMillis() + 5000L);
+        this.entityData.set(DEFUSE_END_TIME, player.level().getGameTime() + 100L);
         if (player instanceof ServerPlayer) {
             PacketHandler.sendToPlayer((ServerPlayer) player, "DEFUSE_START", 0);
         }
