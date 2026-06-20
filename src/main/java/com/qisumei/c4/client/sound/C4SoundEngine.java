@@ -100,7 +100,7 @@ public class C4SoundEngine {
                         beepEvent = ModSounds.C4_BEEP3.get();
                     }
 
-                    float range = ticksLeft > 200 ? 32.0f : 40.0f;
+                    float range = 256.0f;
                     mc.getSoundManager().play(new C4BeepSoundInstance(
                             beepEvent, SoundSource.BLOCKS, c4, range, pitch
                     ));
