@@ -79,22 +79,36 @@ public class ClientMessageRenderer {
         if ("defuse".equals(msg.type) && !msg.isExpired()) {
             int screenW = mc.getWindow().getGuiScaledWidth();
             int screenH = mc.getWindow().getGuiScaledHeight();
-            int centerX = screenW / 2;
-            int centerY = screenH / 2 - 20;
+            GuiGraphics g = event.getGuiGraphics();
+            Font font = mc.font;
 
             long remaining = Math.max(0L, msg.totalDuration - (System.currentTimeMillis() - msg.startTime));
             float progress = (remaining <= 0) ? 1.0f : 1.0f - (float) remaining / msg.totalDuration;
             float secFloat = remaining / 1000.0f;
             String timeStr = String.format("%.1f", secFloat);
+            String label = "Разминирование...";
 
-            GuiGraphics g = event.getGuiGraphics();
-            Font font = mc.font;
+            int bannerW = 240;
+            int bannerH = 34;
+            int bannerX = (screenW - bannerW) / 2;
+            int bannerY = screenH / 2 + 10;
 
-            int timeX = centerX - font.width(timeStr) - 8;
-            int timeY = centerY - font.lineHeight / 2;
-            g.drawString(font, timeStr, timeX, timeY, 0xFFFFFF, true);
+            g.fill(bannerX, bannerY, bannerX + bannerW, bannerY + bannerH, 0xCC000000);
+            g.fill(bannerX, bannerY, bannerX + bannerW, bannerY + 1, 0xFFFFAA00);
 
-            drawDefuseCircle(g, centerX, centerY, 12, 4, progress);
+            int circleCx = bannerX + 22;
+            int circleCy = bannerY + bannerH / 2;
+            int circleRadius = 11;
+            int circleThickness = 3;
+            drawProgressRing(g, circleCx, circleCy, circleRadius, circleThickness, progress, 0xFFFF4444, 0xFF666666);
+
+            int labelX = bannerX + 40;
+            int labelY = bannerY + (bannerH - font.lineHeight) / 2;
+            g.drawString(font, label, labelX, labelY, 0xFFFFFF, true);
+
+            int timeX = bannerX + bannerW - font.width(timeStr) - 10;
+            int timeY = bannerY + (bannerH - font.lineHeight) / 2;
+            g.drawString(font, timeStr, timeX, timeY, 0xFFAAAAAA, true);
         } else {
             updateCache(mc);
             if (!cachedText.isEmpty()) {
@@ -103,14 +117,15 @@ public class ClientMessageRenderer {
         }
     }
 
-    private static void drawDefuseCircle(GuiGraphics g, int cx, int cy, int radius, int thickness, float progress) {
-        int innerR = radius - thickness;
-        int fillColor = 0xFFFF4444;
-        int emptyColor = 0xFF666666;
-        for (int dy = -radius; dy <= radius; dy++) {
-            for (int dx = -radius; dx <= radius; dx++) {
+    private static void drawProgressRing(GuiGraphics g, int cx, int cy, int outerR, int thickness, float progress, int fillColor, int emptyColor) {
+        int innerR = outerR - thickness;
+
+        g.fill(cx - 1, cy - 1, cx + 2, cy + 2, 0xFF000000);
+
+        for (int dy = -outerR; dy <= outerR; dy++) {
+            for (int dx = -outerR; dx <= outerR; dx++) {
                 double dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < innerR || dist > radius) continue;
+                if (dist < innerR || dist > outerR) continue;
                 double angle = Math.toDegrees(Math.atan2(dx, -dy));
                 if (angle < 0) angle += 360;
                 boolean filled = (angle / 360.0) <= progress;
